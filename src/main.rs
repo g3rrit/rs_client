@@ -15,15 +15,20 @@ enum TERM_MODE {
 
 fn main() {
 
-    let mut console = Console_chat::new(Box::new(|buf| {
-        println!("recv");
-    }));
-    console.write(String::from("test 122414").as_bytes());
-    console.write(String::from("test 12241").as_bytes());
-    console.write(String::from("test 1214").as_bytes());
-    console.write(String::from("test 124").as_bytes());
-    console.write(String::from("tet415").as_bytes());
+    let mut console = Arc::new(Mutex::new(Console_chat::new()));
+    let c_con = console.clone();
+    console.lock().unwrap().start_reading(move |buf| {
+        c_con.lock().unwrap().write(buf);
+    });
+    console.lock().unwrap().write(String::from("test 122414").as_bytes());
+    console.lock().unwrap().write(String::from("test 12241").as_bytes());
+    console.lock().unwrap().write(String::from("test 1214").as_bytes());
 
+
+    loop {
+        thread::sleep(time::Duration::from_millis(3000));
+        console.lock().unwrap().write(String::from("test 1214").as_bytes()).expect("unable to write");
+    }
     /*
     let mut term_mode = Arc::new(TERM_MODE::RECEIVE);
 
