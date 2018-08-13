@@ -8,6 +8,9 @@ use std::string::String;
 mod console_chat;
 use console_chat::Console_chat;
 
+mod connection_manager;
+use connection_manager::Connection_manager;
+
 enum TERM_MODE {
     INPUT,
     RECEIVE,
@@ -16,19 +19,36 @@ enum TERM_MODE {
 fn main() {
 
     let mut console = Arc::new(Mutex::new(Console_chat::new()));
+    let mut connection_manager = Arc::new(Mutex::new(Connection_manager::new()));
     let c_con = console.clone();
+    let c_man = connection_manager.clone();
     console.lock().unwrap().start_reading(move |buf| {
         c_con.lock().unwrap().write(buf);
+        match c_man.lock().unwrap().command(buf) {
+            None => (),
+            Some(ret_cmd) => { c_con.lock().unwrap().write(ret_cmd.as_bytes()).unwrap(); },
+        }
     });
     console.lock().unwrap().write(String::from("test 122414").as_bytes());
     console.lock().unwrap().write(String::from("test 12241").as_bytes());
     console.lock().unwrap().write(String::from("test 1214").as_bytes());
 
 
-    loop {
-        thread::sleep(time::Duration::from_millis(3000));
-        console.lock().unwrap().write(String::from("test 1214").as_bytes()).expect("unable to write");
+    let mut buffer : [u8; 512] = [0; 512];
+    let mut is_running = true;
+    while is_running {
+        let rbytes = { connection_manager.lock().unwrap().read(&mut buffer) }; 
+        match rbytes {
+            None => thread::sleep(time::Duration::from_millis(2000)),
+            Some(bytes) => {
+                console.lock().unwrap().write(&buffer[0 .. bytes]);
+            }
+        }
+
+        is_running = { connection_manager.lock().unwrap().is_running() };
     }
+
+
     /*
     let mut term_mode = Arc::new(TERM_MODE::RECEIVE);
 

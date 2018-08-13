@@ -34,7 +34,7 @@ impl Console_chat {
                 match in_key {
                     '\n' => {
                         let temp_buf = { c_buffer.lock().unwrap().clone() };
-                        c_buffer.lock().unwrap().clear();
+                        { c_buffer.lock().unwrap().clear(); }
                         on_text(&temp_buf);
                     },
                     k => {
