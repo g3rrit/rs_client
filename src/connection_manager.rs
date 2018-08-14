@@ -3,6 +3,8 @@ use std::net::TcpStream;
 use std::str::from_utf8;
 use std::sync::{Mutex, Arc, Once, ONCE_INIT};
 use std::{thread, time};
+use std::sync::mpsc::{channel, Sender, Receiver};
+use std::time::Duration;
 
 use console_chat::Console_chat;
 
@@ -27,9 +29,12 @@ impl Connection_manager {
             'c' => {
                 match TcpStream::connect(&cmd_str[2 ..]) {
                     Ok(stream) => { 
-                        stream.set_nonblocking(true);
+                        match stream.set_read_timeout(Some(Duration::from_millis(500))) {
+                            Ok(ok) => (),
+                            Err(err) => return Some(format!("unable to set read timeout: {}", err)),
+                        }
                         self.connection = Some(stream);
-                    },
+                    }
                     Err(err) => return Some(String::from("error connecting to server")),
                 };
             },
@@ -51,12 +56,16 @@ impl Connection_manager {
     }
 
     pub fn read(&mut self, buf : &mut [u8]) -> Option<usize> {
+        /*
         match self.connection {
             None => None,
             Some(ref mut con) => {
-                let bytes = con.read(buf).unwrap();
+                let bytes = match con.read(buf);
                 Some(bytes)
             },
         }
+        */
+
+        self.connection.as_ref().as_mut()?.read(buf).ok()
     }
 }

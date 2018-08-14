@@ -31,15 +31,23 @@ impl Console_chat {
             let mut term = Term::stdout();
             loop {
                 let in_key = term.read_char().unwrap();
-                match in_key {
-                    '\n' => {
+                match in_key as u8 {         
+                    b'\n' => {       //NEWLINE
+                        let empty = { c_buffer.lock().unwrap().is_empty() };
+                        if empty { continue };
+
                         let temp_buf = { c_buffer.lock().unwrap().clone() };
                         { c_buffer.lock().unwrap().clear(); }
                         on_text(&temp_buf);
-                    },
-                    k => {
-                        c_buffer.lock().unwrap().push(k as u8);
-                        term.write(&[k as u8]);
+                    },  
+                    b'\x08' => {     //BACKSPACE
+                        term.write("sdfsdf".as_bytes());
+                        { c_buffer.lock().unwrap().pop() };
+                        term.write(&[b'\x08']);
+                    }
+                    k => {              //ASCII CHAR
+                        c_buffer.lock().unwrap().push(k);
+                        term.write(&[k]);
                     }
                 }
             }
