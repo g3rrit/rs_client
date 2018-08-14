@@ -1,4 +1,4 @@
-use std::io::*;
+use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::str::from_utf8;
 use std::sync::{Mutex, Arc, Once, ONCE_INIT};
@@ -6,23 +6,21 @@ use std::{thread, time};
 use std::sync::mpsc::{channel, Sender, Receiver};
 use std::time::Duration;
 
-use console_chat::Console_chat;
-
-pub struct Connection_manager {
+pub struct Client {
     connection : Option<TcpStream>,
     is_running : bool,
 }
 
 
-impl Connection_manager {
-    pub fn new() -> Connection_manager {
-        Connection_manager {
+impl Client {
+    pub fn new() -> Client {
+        Client {
             connection : None,
             is_running : true,
         }
     }
 
-    pub fn command(&mut self, cmd: &[u8]) -> Option<String> {
+    pub fn command(&mut self, cmd: &[u8]) -> Result<(), String> {
         let cmd_str = from_utf8(cmd).unwrap();
         match cmd[0] as char {
             'q' => self.is_running = false,
@@ -31,24 +29,24 @@ impl Connection_manager {
                     Ok(stream) => { 
                         match stream.set_read_timeout(Some(Duration::from_millis(500))) {
                             Ok(ok) => (),
-                            Err(err) => return Some(format!("unable to set read timeout: {}", err)),
+                            Err(err) => return Err(format!("unable to set read timeout: {}", err)),
                         }
                         self.connection = Some(stream);
                     }
-                    Err(err) => return Some(String::from("error connecting to server")),
+                    Err(err) => return Err(format!("error connecting to server: {}", err)),
                 };
             },
             's' => {
                 match self.connection {
-                    None => return Some(String::from("not connected to a host")),
+                    None => return Err(format!("not connected to a host")),
                     Some(ref mut con) => {
                         con.write(&cmd[2 ..]);
                     }
                 }
             },
-            _ => return Some(String::from("invalid command")),
+            _ => return Err(format!("invalid command")),
         }
-        None
+        Ok(())
     }
 
     pub fn is_running(&self) -> bool {

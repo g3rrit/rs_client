@@ -1,6 +1,6 @@
 extern crate console;
-
 use console::Term;
+
 use std::sync::{Mutex, Arc, Once, ONCE_INIT};
 use std::{mem, thread};
 use std::io::*;

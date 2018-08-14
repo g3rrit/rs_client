@@ -1,2 +1,11 @@
-/target
 **/*.rs.bk
+
+cli/target
+cli/Cargo.lock
+
+client/target
+client/Cargo.lock
+
+gui/target
+gui/Cargo.lock
+

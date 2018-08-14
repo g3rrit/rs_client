@@ -1,7 +1,6 @@
 [package]
-name = "rs_irc"
+name = "client"
 version = "0.1.0"
 authors = ["pearisgreen <grproessl@web.de>"]
 
 [dependencies]
-console = "0.6.1"
