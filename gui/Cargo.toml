@@ -5,4 +5,5 @@ authors = ["pearisgreen <grproessl@web.de>"]
 
 [dependencies]
 client = { path = "../client" }
-qml = "0.0.9"
+stdweb = "0.4.2"
+yew = { git = "https://github.com/DenisKolodin/yew", features = ["toml", "yaml", "msgpack", "cbor"] }
