@@ -1,6 +1,8 @@
 import QtQuick 2.0
+imprt QtQick.Controls 1.0
 
-Item {
+ApplicationWindow {
+    visible: true
     TextInput {
         id: cl_input
         x: 8
